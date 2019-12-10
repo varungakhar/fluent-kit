@@ -52,8 +52,9 @@ protocol AnyID: AnyField {
 }
 
 public protocol FieldRepresentable {
+    associatedtype Base: Model
     associatedtype Value: Codable
-    var field: Field<Value> { get }
+    var field: ModelField<Base, Value> { get }
 }
 
 extension AnyField { }

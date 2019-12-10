@@ -1,8 +1,13 @@
+extension Model {
+    public typealias OptionalParent<To> = ModelOptionalParent<Self, To>
+        where To: Model
+}
+
 @propertyWrapper
-public final class OptionalParent<To>
-    where To: Model
+public final class ModelOptionalParent<From, To>
+where From: Model, To: Model
 {
-    @Field
+    @ModelField<From, To.IDValue?>
     public var id: To.IDValue?
 
     public var wrappedValue: To? {
@@ -15,7 +20,7 @@ public final class OptionalParent<To>
         set { fatalError("use $ prefix to access") }
     }
 
-    public var projectedValue: OptionalParent<To> {
+    public var projectedValue: ModelOptionalParent<From, To> {
         return self
     }
 
@@ -38,13 +43,13 @@ public final class OptionalParent<To>
 
 }
 
-extension OptionalParent: FieldRepresentable {
-    public var field: Field<To.IDValue?> {
+extension ModelOptionalParent: FieldRepresentable {
+    public var field: ModelField<From, To.IDValue?> {
         return self.$id
     }
 }
 
-extension OptionalParent: AnyProperty {
+extension ModelOptionalParent: AnyProperty {
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         if let parent = self.eagerLoadedValue {
@@ -63,4 +68,4 @@ extension OptionalParent: AnyProperty {
     }
 }
 
-extension OptionalParent: AnyField { }
+extension ModelOptionalParent: AnyField { }

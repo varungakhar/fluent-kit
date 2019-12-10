@@ -8,9 +8,14 @@ extension UUID: RandomGeneratable {
     }
 }
 
+extension Model {
+    public typealias ID<Value> = ModelID<Self, Value>
+        where Value: Codable
+}
+
 @propertyWrapper
-public final class ID<Value>: AnyID, FieldRepresentable
-    where Value: Codable
+public final class ModelID<Base, Value>: AnyID, FieldRepresentable
+    where Base: Model, Value: Codable
 {
     public enum Generator {
         case user
@@ -28,7 +33,7 @@ public final class ID<Value>: AnyID, FieldRepresentable
         }
     }
 
-    public let field: Field<Value?>
+    public let field: ModelField<Base, Value?>
     public var exists: Bool
     let generator: Generator
     var cachedOutput: DatabaseOutput?
@@ -46,7 +51,7 @@ public final class ID<Value>: AnyID, FieldRepresentable
         }
     }
 
-    public var projectedValue: ID<Value> {
+    public var projectedValue: ModelID<Base, Value> {
         return self
     }
     

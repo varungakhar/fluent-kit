@@ -508,7 +508,7 @@ public final class FluentBenchmarker {
             }
             // max id
             let maxID = try Planet.query(on: self.database)
-                .max(\.$id).wait()
+                .min(\.$id).wait()
             guard maxID == 9 else {
                 throw Failure("unexpected maxID: \(maxID ?? 0)")
             }

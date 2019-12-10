@@ -1,16 +1,22 @@
+extension Model {
+    public typealias Field<Value> = ModelField<Self, Value>
+        where Value: Codable
+}
+
+
 @propertyWrapper
-public final class Field<Value>: AnyField, FieldRepresentable
-    where Value: Codable
+public final class ModelField<Base, Value>: AnyField, FieldRepresentable
+    where Base: Model, Value: Codable
 {
     public let key: String
     var outputValue: Value?
     var inputValue: DatabaseQuery.Value?
 
-    public var field: Field<Value> {
+    public var field: ModelField<Base, Value> {
         return self
     }
     
-    public var projectedValue: Field<Value> {
+    public var projectedValue: ModelField<Base, Value> {
         return self
     }
     

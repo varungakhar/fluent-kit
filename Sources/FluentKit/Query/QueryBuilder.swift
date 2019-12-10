@@ -47,7 +47,7 @@ public final class QueryBuilder<Model>
     
     @discardableResult
     public func join<Value>(
-        _ field: KeyPath<Model, Parent<Value>>,
+        _ field: KeyPath<Model, ModelParent<Model, Value>>,
         alias: String? = nil
     ) -> Self
         where Value: FluentKit.Model
@@ -62,7 +62,7 @@ public final class QueryBuilder<Model>
 
     @discardableResult
     public func join<Value>(
-        _ field: KeyPath<Value, Parent<Model>>,
+        _ field: KeyPath<Value, ModelParent<Value, Model>>,
         alias: String? = nil
     ) -> Self
         where Value: FluentKit.Model
@@ -77,8 +77,8 @@ public final class QueryBuilder<Model>
 
     @discardableResult
     public func join<Foreign, Local, Value>(
-        _ foreign: KeyPath<Foreign, Field<Value?>>,
-        to local: KeyPath<Local, Field<Value>>,
+        _ foreign: KeyPath<Foreign, ModelField<Foreign, Value?>>,
+        to local: KeyPath<Local, ModelField<Local, Value>>,
         method: DatabaseQuery.Join.Method = .inner,
         alias: String? = nil
     ) -> Self
@@ -94,8 +94,8 @@ public final class QueryBuilder<Model>
 
     @discardableResult
     public func join<Foreign, Local, Value>(
-        _ foreign: KeyPath<Foreign, Field<Value>>,
-        to local: KeyPath<Local, Field<Value?>>,
+        _ foreign: KeyPath<Foreign, ModelField<Foreign, Value>>,
+        to local: KeyPath<Local, ModelField<Local, Value?>>,
         method: DatabaseQuery.Join.Method = .inner,
         alias: String? = nil
     ) -> Self
@@ -111,8 +111,8 @@ public final class QueryBuilder<Model>
 
     @discardableResult
     public func join<Foreign, Local, Value>(
-        _ foreign: KeyPath<Foreign, Field<Value>>,
-        to local: KeyPath<Local, Field<Value>>,
+        _ foreign: KeyPath<Foreign, ModelField<Foreign, Value>>,
+        to local: KeyPath<Local, ModelField<Local, Value>>,
         method: DatabaseQuery.Join.Method = .inner,
         alias: String? = nil
     ) -> Self
@@ -128,7 +128,7 @@ public final class QueryBuilder<Model>
 
     @discardableResult
     public func join<Foreign, Local, Value>(
-        _ foreign: KeyPath<Foreign, Field<Value>>,
+        _ foreign: KeyPath<Foreign, ModelField<Foreign, Value>>,
         on filter: JoinFilter<Foreign, Local, Value>,
         method: DatabaseQuery.Join.Method = .inner
     ) -> Self
@@ -225,7 +225,7 @@ public final class QueryBuilder<Model>
 
     @discardableResult
     public func filter<Joined, Values>(
-        _ field: KeyPath<Joined, Field<Values.Element>>,
+        _ field: KeyPath<Joined, ModelField<Joined, Values.Element>>,
         in values: Values,
         alias: String? = nil
     ) -> Self
@@ -235,7 +235,7 @@ public final class QueryBuilder<Model>
     }
     
     @discardableResult
-    public func filter<Values>(_ field: KeyPath<Model, Field<Values.Element>>, in values: Values) -> Self
+    public func filter<Values>(_ field: KeyPath<Model, ModelField<Model, Values.Element>>, in values: Values) -> Self
         where Values: Collection, Values.Element: Codable
     {
         return self.filter(Model.self, Model.key(for: field), in: values, alias: nil)
@@ -313,12 +313,12 @@ public final class QueryBuilder<Model>
     }
     
     @discardableResult
-    public func filter<Value>(_ field: KeyPath<Model, Field<Value>>, _ method: DatabaseQuery.Filter.Method, _ value: Value) -> Self {
+    public func filter<Value>(_ field: KeyPath<Model, ModelField<Model, Value>>, _ method: DatabaseQuery.Filter.Method, _ value: Value) -> Self {
         return self.filter(Model.key(for: field), method, value)
     }
 
     @discardableResult
-    public func filter<Value>(_ lhsField: KeyPath<Model, Field<Value>>, _ method: DatabaseQuery.Filter.Method, _ rhsField: KeyPath<Model, Field<Value>>) -> Self {
+    public func filter<Value>(_ lhsField: KeyPath<Model, ModelField<Model, Value>>, _ method: DatabaseQuery.Filter.Method, _ rhsField: KeyPath<Model, ModelField<Model, Value>>) -> Self {
         return self.filter(Model.key(for: lhsField), method, Model.key(for: rhsField))
     }
     
@@ -383,7 +383,7 @@ public final class QueryBuilder<Model>
     // MARK: Set
     
     @discardableResult
-    public func set<Value>(_ field: KeyPath<Model, Field<Value>>, to value: Value) -> Self {
+    public func set<Value>(_ field: KeyPath<Model, ModelField<Model, Value>>, to value: Value) -> Self {
         self.query.fields = []
         query.fields.append(.field(path: [Model.key(for: field)], schema: nil, alias: nil))
         switch query.input.count {
@@ -435,7 +435,7 @@ public final class QueryBuilder<Model>
     // MARK: Nested
 
     public func filter<Value, NestedValue>(
-        _ field: KeyPath<Model, Field<Value>>,
+        _ field: KeyPath<Model, ModelField<Model, Value>>,
         _ path: NestedPath,
         _ method: DatabaseQuery.Filter.Method,
         _ value: NestedValue
@@ -782,8 +782,8 @@ public func !=~ <Model, Field>(lhs: KeyPath<Model, Field>, rhs: Field.Value) -> 
 
 // MARK: Field-Field Operators
 
-public func == <Left, Right, Field>(lhs: KeyPath<Left, Field>, rhs: KeyPath<Right, Field>) -> ModelFieldFilter<Left, Right>
-    where Left: FluentKit.Model, Right: FluentKit.Model, Field: FieldRepresentable
+public func == <Left, Right, FA, FB>(lhs: KeyPath<Left, FA>, rhs: KeyPath<Right, FB>) -> ModelFieldFilter<Left, Right>
+    where Left: FluentKit.Model, Right: FluentKit.Model, FA: FieldRepresentable, FB: FieldRepresentable
 {
     return .init(lhs, .equal, rhs)
 }
@@ -873,12 +873,12 @@ public struct ModelValueFilter<Model> where Model: FluentKit.Model {
 }
 
 public struct ModelFieldFilter<Left, Right> where Left: FluentKit.Model, Right: FluentKit.Model {
-    init<Field>(
-        _ lhs: KeyPath<Left, Field>,
+    init<A, B>(
+        _ lhs: KeyPath<Left, A>,
         _ method: DatabaseQuery.Filter.Method,
-        _ rhs: KeyPath<Right, Field>
+        _ rhs: KeyPath<Right, B>
     )
-        where Field: FieldRepresentable
+        where A: FieldRepresentable, B: FieldRepresentable
     {
         self.lhsPath = [Left.init()[keyPath: lhs].field.key]
         self.method = method

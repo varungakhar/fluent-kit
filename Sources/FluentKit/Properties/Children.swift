@@ -1,12 +1,17 @@
+extension Model {
+    public typealias Children<To> = ModelChildren<Self, To>
+        where To: Model
+}
+
 @propertyWrapper
-public final class Children<From, To>: AnyProperty
+public final class ModelChildren<From, To>: AnyProperty
     where From: Model, To: Model
 {
     // MARK: ID
 
     enum Key {
-        case required(KeyPath<To, Parent<From>>)
-        case optional(KeyPath<To, OptionalParent<From>>)
+        case required(KeyPath<To, ModelParent<To, From>>)
+        case optional(KeyPath<To, ModelOptionalParent<To, From>>)
     }
 
     let parentKey: Key
@@ -15,11 +20,11 @@ public final class Children<From, To>: AnyProperty
 
     // MARK: Wrapper
 
-    public init(for parent: KeyPath<To, Parent<From>>) {
+    public init(for parent: KeyPath<To, ModelParent<To, From>>) {
         self.parentKey = .required(parent)
     }
 
-    public init(for optionalParent: KeyPath<To, OptionalParent<From>>) {
+    public init(for optionalParent: KeyPath<To, ModelOptionalParent<To, From>>) {
         self.parentKey = .optional(optionalParent)
     }
 
@@ -33,7 +38,7 @@ public final class Children<From, To>: AnyProperty
         set { fatalError("Use $ prefix to access") }
     }
 
-    public var projectedValue: Children<From, To> {
+    public var projectedValue: ModelChildren<From, To> {
         return self
     }
     
@@ -80,7 +85,7 @@ public final class Children<From, To>: AnyProperty
 }
 
 
-extension Children: EagerLoadable {
+extension ModelChildren: EagerLoadable {
     public func eagerLoad<Model>(to builder: QueryBuilder<Model>)
         where Model: FluentKit.Model
     {
@@ -88,7 +93,7 @@ extension Children: EagerLoadable {
     }
 }
 
-extension Children: AnyEagerLoadable {
+extension ModelChildren: AnyEagerLoadable {
     var eagerLoadKey: String {
         let ref = To()
         switch self.parentKey {

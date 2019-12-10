@@ -1,17 +1,17 @@
 extension AnyModel {
-    var timestamps: [(String, Timestamp)] {
+    var timestamps: [(String, AnyTimestamp)] {
         return self.properties.compactMap { (label, property) in
-            guard let field = property as? Timestamp else {
+            guard let field = property as? AnyTimestamp else {
                 return nil
             }
             return (label, field)
         }
     }
-    func touchTimestamps(_ triggers: Timestamp.Trigger...) {
+    func touchTimestamps(_ triggers: TimestampTrigger...) {
         return self.touchTimestamps(triggers)
     }
 
-    private func touchTimestamps(_ triggers: [Timestamp.Trigger]) {
+    private func touchTimestamps(_ triggers: [TimestampTrigger]) {
         let date = Date()
         self.timestamps.forEach { (label, timestamp) in
             if triggers.contains(timestamp.trigger) {
@@ -20,7 +20,7 @@ extension AnyModel {
         }
     }
 
-    var deletedTimestamp: Timestamp? {
+    var deletedTimestamp: AnyTimestamp? {
         return self.timestamps.filter({ $0.1.trigger == .delete }).first?.1
     }
 
@@ -40,19 +40,37 @@ extension AnyModel {
     }
 }
 
+protocol AnyTimestamp {
+    var key: String { get }
+    var trigger: TimestampTrigger { get }
+    func touch(date: Date?)
+}
+
+extension AnyTimestamp {
+    public func touch() {
+        self.touch(date: .init())
+    }
+}
+
+extension Model {
+    public typealias Timestamp = ModelTimestamp<Self>
+}
+
+public enum TimestampTrigger {
+    case create
+    case update
+    case delete
+}
+
 @propertyWrapper
-public final class Timestamp: AnyField, FieldRepresentable {
+public final class ModelTimestamp<Base>: AnyField, FieldRepresentable, AnyTimestamp
+    where Base: Model
+{
     public typealias Value = Date?
 
-    public enum Trigger {
-        case create
-        case update
-        case delete
-    }
+    public let field: ModelField<Base, Date?>
 
-    public let field: Field<Date?>
-
-    public let trigger: Trigger
+    public let trigger: TimestampTrigger
 
     public var key: String {
         return self.field.key
@@ -67,7 +85,7 @@ public final class Timestamp: AnyField, FieldRepresentable {
         }
     }
 
-    public var projectedValue: Timestamp {
+    public var projectedValue: ModelTimestamp<Base> {
         return self
     }
 
@@ -80,12 +98,12 @@ public final class Timestamp: AnyField, FieldRepresentable {
         }
     }
 
-    public init(key: String, on trigger: Trigger) {
+    public init(key: String, on trigger: TimestampTrigger) {
         self.field = .init(key: key)
         self.trigger = trigger
     }
 
-    public func touch(date: Date? = .init()) {
+    public func touch(date: Date?) {
         self.inputValue = .bind(date)
     }
 

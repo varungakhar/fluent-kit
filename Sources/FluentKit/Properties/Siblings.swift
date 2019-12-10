@@ -1,17 +1,22 @@
+extension Model {
+    public typealias Siblings<To, Through> = ModelSiblings<Self, To, Through>
+        where To: Model, Through: Model
+}
+
 @propertyWrapper
-public final class Siblings<From, To, Through>: AnyProperty
+public final class ModelSiblings<From, To, Through>: AnyProperty
     where From: Model, To: Model, Through: Model
 {
 
-    private let from: KeyPath<Through, Parent<From>>
-    private let to: KeyPath<Through, Parent<To>>
+    private let from: KeyPath<Through, ModelParent<Through, From>>
+    private let to: KeyPath<Through, ModelParent<Through, To>>
     private var idValue: From.IDValue?
     private var eagerLoadedValue: [To]?
 
     public init(
         through: Through.Type,
-        from: KeyPath<Through, Parent<From>>,
-        to: KeyPath<Through, Parent<To>>
+        from: KeyPath<Through, ModelParent<Through, From>>,
+        to: KeyPath<Through, ModelParent<Through, To>>
     ) {
         self.from = from
         self.to = to
@@ -27,7 +32,7 @@ public final class Siblings<From, To, Through>: AnyProperty
         set { fatalError("Use $ prefix to modify siblings relation") }
     }
 
-    public var projectedValue: Siblings<From, To, Through> {
+    public var projectedValue: ModelSiblings<From, To, Through> {
         return self
     }
 
@@ -100,7 +105,7 @@ public final class Siblings<From, To, Through>: AnyProperty
 }
 
 
-extension Siblings: EagerLoadable {
+extension ModelSiblings: EagerLoadable {
     public func eagerLoad<Model>(to builder: QueryBuilder<Model>)
         where Model: FluentKit.Model
     {
@@ -111,7 +116,7 @@ extension Siblings: EagerLoadable {
 }
 
 
-extension Siblings: AnyEagerLoadable {
+extension ModelSiblings: AnyEagerLoadable {
     var eagerLoadKey: String {
         let ref = Through()
         return "s:" + ref[keyPath: self.from].key + "+" + ref[keyPath: self.to].key
@@ -141,14 +146,17 @@ extension Siblings: AnyEagerLoadable {
 
     final class SubqueryEagerLoad: EagerLoadRequest {
         var storage: [To]
-        private let from: KeyPath<Through, Parent<From>>
-        private let to: KeyPath<Through, Parent<To>>
+        private let from: KeyPath<Through, ModelParent<Through, From>>
+        private let to: KeyPath<Through, ModelParent<Through, To>>
 
         var description: String {
             return self.storage.description
         }
 
-        init(from: KeyPath<Through, Parent<From>>, to: KeyPath<Through, Parent<To>>) {
+        init(
+            from: KeyPath<Through, ModelParent<Through, From>>,
+            to: KeyPath<Through, ModelParent<Through, To>>
+        ) {
             self.storage = []
             self.from = from
             self.to = to

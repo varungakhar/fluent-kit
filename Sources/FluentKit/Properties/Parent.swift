@@ -1,8 +1,13 @@
+extension Model {
+    public typealias Parent<To> = ModelParent<Self, To>
+        where To: Model
+}
+
 @propertyWrapper
-public final class Parent<To>
-    where To: Model
+public final class ModelParent<From, To>
+    where From: Model, To: Model
 {
-    @Field
+    @ModelField<From, To.IDValue>
     public var id: To.IDValue
 
     public var wrappedValue: To {
@@ -15,7 +20,7 @@ public final class Parent<To>
         set { fatalError("use $ prefix to access") }
     }
 
-    public var projectedValue: Parent<To> {
+    public var projectedValue: ModelParent<From, To> {
         return self
     }
 
@@ -41,13 +46,13 @@ public final class Parent<To>
 
 }
 
-extension Parent: FieldRepresentable {
-    public var field: Field<To.IDValue> {
+extension ModelParent: FieldRepresentable {
+    public var field: ModelField<From, To.IDValue> {
         return self.$id
     }
 }
 
-extension Parent: AnyProperty {
+extension ModelParent: AnyProperty {
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         if let parent = self.eagerLoadedValue {
@@ -66,4 +71,4 @@ extension Parent: AnyProperty {
     }
 }
 
-extension Parent: AnyField { }
+extension ModelParent: AnyField { }
