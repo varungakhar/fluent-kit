@@ -178,8 +178,8 @@ public struct SQLSchemaConverter {
             return SQLDataType.int
         case .uint64:
             return SQLDataType.int
-        case .enum:
-            fatalError("SQL enums not yet supported.")
+        case .enum(let data):
+            return SQLEnum(name: data.name, cases: data.cases)
         case .time:
             return SQLRaw("TIME")
         case .float:

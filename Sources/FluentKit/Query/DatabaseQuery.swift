@@ -157,6 +157,7 @@ public struct DatabaseQuery: CustomStringConvertible {
         case null
         case `default`
         case custom(Any)
+        case `enum`(DatabaseEnum)
 
         public var description: String {
             switch self {
@@ -174,6 +175,8 @@ public struct DatabaseQuery: CustomStringConvertible {
                 return "nil"
             case .default:
                 return "default"
+            case .enum(let value):
+                return value.caseName
             case .custom(let custom):
                 return "\(custom)"
             }

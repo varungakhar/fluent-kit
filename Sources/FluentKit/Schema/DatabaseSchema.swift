@@ -17,7 +17,26 @@ public struct DatabaseSchema {
         case update
         case delete
     }
-    
+
+    public struct Enum {
+        public var name: String
+        public var existingCases: [String]
+        public var cases: [String]
+        public var deleteCases: [String]
+
+        public init(
+            name: String,
+            existingCases: [String] = [],
+            cases: [String],
+            deleteCases: [String] = []
+        ) {
+            self.name = name
+            self.existingCases = existingCases
+            self.cases = cases
+            self.deleteCases = deleteCases
+        }
+    }
+
     public indirect enum DataType {
         case json
         
@@ -39,11 +58,7 @@ public struct DatabaseSchema {
         
         
         case bool
-        
-        public struct Enum {
-            public var name: String
-            public var cases: [String]
-        }
+
         case `enum`(Enum)
         case string
         

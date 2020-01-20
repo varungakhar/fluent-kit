@@ -288,6 +288,8 @@ public struct SQLQueryConverter {
             return SQLBind(DictValues(dict: dict))
         case .default:
             return SQLLiteral.default
+        case .enum(let value):
+            return SQLLiteral.string(value.caseName)
         case .custom(let any):
             return custom(any)
         }

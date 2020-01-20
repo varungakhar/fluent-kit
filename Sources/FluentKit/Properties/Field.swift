@@ -32,7 +32,12 @@ public final class Field<Value>: AnyField, FieldRepresentable
             }
         }
         set {
-            self.inputValue = .bind(newValue)
+            if let data = newValue as? DatabaseEnum {
+                self.inputValue = .enum(data)
+            } else {
+                self.inputValue = .bind(newValue)
+            }
+
         }
     }
 

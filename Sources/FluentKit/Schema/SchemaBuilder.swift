@@ -1,5 +1,15 @@
 import NIO
 
+public protocol DatabaseEnum {
+    var caseName: String { get }
+}
+
+extension DatabaseEnum where Self: RawRepresentable, Self.RawValue == String {
+    public var caseName: String {
+        self.rawValue
+    }
+}
+
 extension Database {
     public func schema(_ schema: String) -> SchemaBuilder {
         return .init(database: self, schema: schema)
