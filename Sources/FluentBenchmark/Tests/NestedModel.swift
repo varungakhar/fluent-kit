@@ -25,15 +25,6 @@ extension FluentBenchmarker {
                 return
             }
 
-            struct UserJSON: Equatable, Codable {
-                var id: UUID
-                var name: String
-                var pet: PetJSON
-            }
-            struct PetJSON: Equatable, Codable {
-                var name: String
-                var type: String
-            }
             // {"id":...,"name":"Tanner","pet":{"name":"Ziz","type":"cat"}}
             let expected = UserJSON(id: user.id!, name: "Tanner", pet: .init(name: "Ziz", type: "cat"))
 
@@ -46,6 +37,17 @@ extension FluentBenchmarker {
     }
 }
 
+private struct UserJSON: Equatable, Codable {
+    var id: UUID
+    var name: String
+    var pet: PetJSON
+}
+
+private struct PetJSON: Equatable, Codable {
+    var name: String
+    var type: String
+}
+
 private final class User: Model {
     struct Pet: Codable {
         enum Animal: String, Codable {
@@ -56,7 +58,7 @@ private final class User: Model {
     }
     static let schema = "users"
 
-    @ID(key: FluentBenchmarker.idKey)
+    @ID(key: "id")
     var id: UUID?
 
     @Field(key: "name")

@@ -3,7 +3,7 @@ import FluentKit
 public final class Moon: Model {
     public static let schema = "moons"
 
-    @ID(key: FluentBenchmarker.idKey)
+    @ID(key: "id")
     public var id: UUID?
 
     @Field(key: "name")
@@ -61,7 +61,7 @@ public final class MoonSeed: Migration {
                 switch planet.name {
                 case "Earth":
                     moons = [
-                        .init(name: "Luna", craters: 10, comets: 10)
+                        .init(name: "Moon", craters: 10, comets: 10)
                     ]
                 case "Mars":
                     moons = [

@@ -6,37 +6,6 @@ extension FluentBenchmarker {
             let galaxies = try Galaxy.query(on: self.database)
                 .all().wait()
 
-            struct GalaxyKey: CodingKey, ExpressibleByStringLiteral {
-                var stringValue: String
-                var intValue: Int? {
-                    return Int(self.stringValue)
-                }
-
-                init(stringLiteral value: String) {
-                    self.stringValue = value
-                }
-
-                init?(stringValue: String) {
-                    self.stringValue = stringValue
-                }
-
-                init?(intValue: Int) {
-                    self.stringValue = intValue.description
-                }
-            }
-
-            struct GalaxyJSON: Codable {
-                var id: UUID
-                var name: String
-
-                init(from decoder: Decoder) throws {
-                    let keyed = try decoder.container(keyedBy: GalaxyKey.self)
-                    self.id = try keyed.decode(UUID.self, forKey: "id")
-                    self.name = try keyed.decode(String.self, forKey: "name")
-                    XCTAssertEqual(keyed.allKeys.count, 2)
-                }
-            }
-
             let encoded = try JSONEncoder().encode(galaxies)
             print(String(decoding: encoded, as: UTF8.self))
 
@@ -64,5 +33,36 @@ extension FluentBenchmarker {
                 }
             }
         }
+    }
+}
+
+private struct GalaxyKey: CodingKey, ExpressibleByStringLiteral {
+    var stringValue: String
+    var intValue: Int? {
+        return Int(self.stringValue)
+    }
+
+    init(stringLiteral value: String) {
+        self.stringValue = value
+    }
+
+    init?(stringValue: String) {
+        self.stringValue = stringValue
+    }
+
+    init?(intValue: Int) {
+        self.stringValue = intValue.description
+    }
+}
+
+private struct GalaxyJSON: Codable {
+    var id: UUID
+    var name: String
+
+    init(from decoder: Decoder) throws {
+        let keyed = try decoder.container(keyedBy: GalaxyKey.self)
+        self.id = try keyed.decode(UUID.self, forKey: "id")
+        self.name = try keyed.decode(String.self, forKey: "name")
+        XCTAssertEqual(keyed.allKeys.count, 2)
     }
 }
