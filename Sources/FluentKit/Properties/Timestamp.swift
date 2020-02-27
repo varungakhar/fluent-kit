@@ -12,8 +12,6 @@ public enum TimestampTrigger {
 public final class TimestampProperty<Model>
     where Model: FluentKit.Fields
 {
-    public typealias Value = Date?
-
     public let field: FieldProperty<Model, Date?>
 
     public let trigger: TimestampTrigger
@@ -54,11 +52,22 @@ public final class TimestampProperty<Model>
     }
 }
 
-extension TimestampProperty: AnyField {
-    public var keys: [FieldKey] {
-        [self.key]
+extension TimestampProperty: FieldProtocol { }
+
+extension TimestampProperty: AnyField { }
+
+extension TimestampProperty: PropertyProtocol {
+    public var value: Date?? {
+        get {
+            self.field.value
+        }
+        set {
+            self.field.value = newValue
+        }
     }
-    
+}
+
+extension TimestampProperty: AnyProperty {
     public func input(to input: inout DatabaseInput) {
         self.field.input(to: &input)
     }

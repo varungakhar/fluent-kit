@@ -17,23 +17,13 @@ public final class FieldProperty<Model, Value>
 
     public var wrappedValue: Value {
         get {
-            if let value = self.inputValue {
-                switch value {
-                case .bind(let bind):
-                    return bind as! Value
-                case .default:
-                    fatalError("Cannot access default field before it is initialized or fetched")
-                default:
-                    fatalError("Unexpected input value type: \(value)")
-                }
-            } else if let value = self.outputValue {
-                return value
-            } else {
+            guard let value = self.value else {
                 fatalError("Cannot access field before it is initialized or fetched: \(self.key)")
             }
+            return value
         }
         set {
-            self.inputValue = .bind(newValue)
+            self.value = newValue
         }
     }
 
@@ -42,19 +32,36 @@ public final class FieldProperty<Model, Value>
     }
 }
 
-extension FieldProperty: FilterField {
-    public var path: [FieldKey] {
-        [self.key]
+extension FieldProperty: FieldProtocol { }
+
+extension FieldProperty: AnyField { }
+
+extension FieldProperty: PropertyProtocol {
+    public var value: Value? {
+        get {
+            if let value = self.inputValue {
+                switch value {
+                case .bind(let bind):
+                    return bind as! Value
+                case .default:
+                    return nil
+                default:
+                    return nil
+                }
+            } else if let value = self.outputValue {
+                return value
+            } else {
+                return nil
+            }
+        }
+        set {
+
+            self.inputValue = .bind(newValue)
+        }
     }
 }
 
-extension FieldProperty: QueryField { }
-
-extension FieldProperty: AnyField {
-    public var keys: [FieldKey] {
-        [self.key]
-    }
-
+extension FieldProperty: AnyProperty {
     public func input(to input: inout DatabaseInput) {
         input.values[self.key] = self.inputValue
     }
@@ -92,3 +99,12 @@ extension FieldProperty: AnyField {
         }
     }
 }
+
+
+extension FieldProperty: FilterField {
+    public var path: [FieldKey] {
+        [self.key]
+    }
+}
+
+extension FieldProperty: QueryField { }

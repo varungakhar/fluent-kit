@@ -20,21 +20,13 @@ public final class EnumProperty<Model, Value>
 
     public var wrappedValue: Value {
         get {
-            if let value = self.field.inputValue {
-                switch value {
-                case .enumCase(let string):
-                    return Value(rawValue: string)!
-                default:
-                    fatalError("Unexpected enum input value type: \(value)")
-                }
-            } else if let value = self.field.outputValue {
-                return Value(rawValue: value)!
-            } else {
-                fatalError("Cannot access enum field before it is initialized or fetched: \(self.field.key)")
+            guard let value = self.value else {
+                fatalError("Cannot access enum value before initialized.")
             }
+            return value
         }
         set {
-            self.field.inputValue = .enumCase(newValue.rawValue)
+            self.value = newValue
         }
     }
 
@@ -49,11 +41,53 @@ extension EnumProperty: FilterField {
     }
 }
 
-extension EnumProperty: AnyField {
-    public var keys: [FieldKey] {
-        self.field.keys
+extension EnumProperty: FieldProtocol {
+    public typealias FieldValue = String
+
+    public var fieldValue: String? {
+        get {
+            self.field.fieldValue
+        }
+        set {
+            self.field.fieldValue = newValue
+        }
     }
 
+}
+
+extension EnumProperty: AnyField {
+    public var key: FieldKey {
+        self.field.key
+    }
+}
+
+extension EnumProperty: PropertyProtocol {
+    public var value: Value? {
+        get {
+            if let value = self.field.inputValue {
+                switch value {
+                case .enumCase(let string):
+                    return Value(rawValue: string)!
+                default:
+                    return nil
+                }
+            } else if let value = self.field.outputValue {
+                return Value(rawValue: value)!
+            } else {
+                return nil
+            }
+        }
+        set {
+            self.field.inputValue = newValue.flatMap {
+                .enumCase($0.rawValue)
+            }
+        }
+    }
+
+
+}
+
+extension EnumProperty: AnyProperty {
     public func input(to input: inout DatabaseInput) {
         self.field.input(to: &input)
     }

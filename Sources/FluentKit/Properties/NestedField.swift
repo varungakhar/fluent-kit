@@ -85,9 +85,8 @@ public struct _NestedField<Model, Field>
 }
 
 extension _NestedField: FilterField {
-    public var wrappedValue: Field.Value {
-        self.field.wrappedValue
-    }
+    public typealias Model = Field.Model
+    public typealias Value = Field.Value
 
     public var path: [FieldKey] {
         [self.root] + self.field.path
