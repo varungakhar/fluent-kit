@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "varunfluent-kit",
+    name: "fluent-kit",
     platforms: [
        .macOS(.v10_15)
     ],
